@@ -1,0 +1,149 @@
+<html>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no"/>
+    <title>はじめての Web マッピングアプリケーション開発 2021：ポップアップ設定編その２</title>
+    <!--Calcite components CDN-->
+    <script type="module" src="https://js.arcgis.com/calcite-components/1.0.0-beta.80/calcite.esm.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://js.arcgis.com/calcite-components/1.0.0-beta.80/calcite.css" />
+    <link rel="stylesheet" href="https://js.arcgis.com/4.23/esri/themes/light/main.css">
+    <link rel="stylesheet" href="app/main.css">
+
+    <script>
+      var locationPath = location.pathname.replace(/\/[^/]*$/, "");
+      window.dojoConfig = {
+        packages: [
+          {
+            name: "app",
+            location: locationPath + "/app"
+          }
+        ]
+      };
+    </script>
+    <script src="https://js.arcgis.com/4.23"></script>
+
+  </head>
+  <body>
+    <div id="viewDiv"></div>
+    <!--2021 操作用UI-->
+    <calcite-action 
+        id="toggle-button"
+        text="Toggle controlsDiv"
+        title="パネルを畳む"
+        icon="chevrons-left"
+        scale="s">
+    </calcite-action>
+    <calcite-panel id="controlsDiv" class="panel-side">
+        <br />
+        <calcite-label alignment="center" scale="l">
+        Calcite components を使った操作パネル
+        </calcite-label>
+        <div id="content" style="padding: 5px">
+            
+            <calcite-label><b>レイヤーの表示/非表示の操作</b></calcite-label>
+            <!--
+            <label>
+                <calcite-checkbox id="gsipaleLyr"></calcite-checkbox> 地理院タイル-淡色地図 (WebTileLayer) <br />
+            </label>
+            -->
+            <label>
+                <calcite-checkbox id="chikakojiLyr" checked></calcite-checkbox> 公示地価 (FeatureLayer) <br />
+            </label>
+            <label>
+                <calcite-checkbox id="cityareaLyr"></calcite-checkbox> 全国市区町村界 (FeatureLayer) <br />
+            </label>
+            <br />
+            
+            <label>
+                <calcite-label><b>クエリの操作</b></calcite-label>
+                <!--<calcite-input id="attrTxt" prefix-text="市区町村名" type="text"
+                    placeholder="例:豊田市" max-length="10"></calcite-input>-->
+                市区町村名<calcite-select id="citySelect" scale="s" width="auto">
+                </calcite-select>
+                <div style="width: 360px; max-width: 100%; display: flex;flex-direction: row;">
+                    <calcite-button id="queryButton" width="half" appearance="solid"
+                        alignment="center" scale="m">検索</calcite-button>
+                    <calcite-button id="clearButton" width="half" appearance="outline"
+                        alignment="center" scale="m">クリア</calcite-button>
+                </div>
+            </label>
+        </div>
+        <div id="resultsDiv" style="padding: 10px">
+            <span id="resultText"></span>
+            <calcite-panel id="resultsListDiv">
+                <calcite-pick-list id="resultsList" style="padding: 5px"></calcite-pick-list>
+            </calcite-panel>
+        </div>
+    </calcite-panel>
+
+    <!--2022.03.30 試しに追加-->
+    <calcite-panel id="prefcontrolsDiv" class="prefControl">
+      <br />
+      <calcite-label><b>都道府県の切り替え</b></calcite-label>
+      <calcite-select id="prefSelect">
+          <calcite-option-group label="北海道・東北地方">
+              <calcite-option value="01">北海道</calcite-option>
+              <calcite-option value="02">青森県</calcite-option>
+              <calcite-option value="03">岩手県</calcite-option>
+              <calcite-option value="04">宮城県</calcite-option>
+              <calcite-option value="05">秋田県</calcite-option>
+              <calcite-option value="06">山形県</calcite-option>
+              <calcite-option value="07">福島県</calcite-option>
+          </calcite-option-group>
+          <calcite-option-group label="関東地方">
+              <calcite-option value="08">茨城県</calcite-option>
+              <calcite-option value="09">栃木県</calcite-option>
+              <calcite-option value="10">群馬県</calcite-option>
+              <calcite-option value="11">埼玉県</calcite-option>
+              <calcite-option value="12">千葉県</calcite-option>
+              <calcite-option value="13">東京都</calcite-option>
+              <calcite-option value="14">神奈川県</calcite-option>
+          </calcite-option-group>
+          <calcite-option-group label="中部地方">
+              <calcite-option value="15">新潟県</calcite-option>
+              <calcite-option value="16">富山県</calcite-option>
+              <calcite-option value="17">石川県</calcite-option>
+              <calcite-option value="18">福井県</calcite-option>
+              <calcite-option value="19">山梨県</calcite-option>
+              <calcite-option value="20">長野県</calcite-option>
+              <calcite-option value="21">岐阜県</calcite-option>
+              <calcite-option value="22">静岡県</calcite-option>
+              <calcite-option value="23" selected>愛知県</calcite-option>
+              <calcite-option value="24">三重県</calcite-option>
+          </calcite-option-group>
+          <calcite-option-group label="近畿地方">
+              <calcite-option value="25">滋賀県</calcite-option>
+              <calcite-option value="26">京都府</calcite-option>
+              <calcite-option value="27">大阪府</calcite-option>
+              <calcite-option value="28">兵庫県</calcite-option>
+              <calcite-option value="29">奈良県</calcite-option>
+              <calcite-option value="30">和歌山県</calcite-option>
+          </calcite-option-group>
+          <calcite-option-group label="中国・四国地方">
+              <calcite-option value="31">鳥取県</calcite-option>
+              <calcite-option value="32">島根県</calcite-option>
+              <calcite-option value="33">岡山県</calcite-option>
+              <calcite-option value="34">広島県</calcite-option>
+              <calcite-option value="35">山口県</calcite-option>
+              <calcite-option value="36">徳島県</calcite-option>
+              <calcite-option value="37">香川県</calcite-option>
+              <calcite-option value="38">愛媛県</calcite-option>
+              <calcite-option value="39">高知県</calcite-option>
+          </calcite-option-group>
+          <calcite-option-group label="九州・沖縄地方">
+              <calcite-option value="40">福岡県</calcite-option>
+              <calcite-option value="41">佐賀県</calcite-option>
+              <calcite-option value="42">長崎県</calcite-option>
+              <calcite-option value="43">熊本県</calcite-option>
+              <calcite-option value="44">大分県</calcite-option>
+              <calcite-option value="45">宮崎県</calcite-option>
+              <calcite-option value="46">鹿児島県</calcite-option>
+              <calcite-option value="47">沖縄県</calcite-option>
+          </calcite-option-group>
+      </calcite-select>
+      <br />
+    </calcite-panel>
+
+    <script>require(["app/main"]);</script>
+  </body>
+</html>
